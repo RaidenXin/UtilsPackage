@@ -57,7 +57,7 @@ public class StringFormatUtils {
 				LOGGER.error("String is not a time format!");
 			}
 		} catch (ParseException e) {
-			throw new EpdException("Error in time conversion!");
+			throw new Exception("Error in time conversion!");
 		}
 		return result;
 	}
