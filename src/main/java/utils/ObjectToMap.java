@@ -12,14 +12,14 @@ public class ObjectToMap {
 
 	private static final String DOC_TYPE = "DOC_TYPE";
 	
+	/**
+	 * *把一个类转化为Map
+	 * @param object
+	 * @return
+	 */
 	public static Map<String, Object> object2Map(Object object){
-		return object2Map(object, true);
-	}
-	
-	private static Map<String, Object> object2Map(Object object,boolean stamp){
-		Map<String, Object> result = new HashMap<>();
 		if (null == object) {
-			return result;
+			return new HashMap<>(0);
 		}
 		String name = object.getClass().getName();
 		Field[] fields = object.getClass().getDeclaredFields();
@@ -35,25 +35,21 @@ public class ObjectToMap {
 						String detailName = null;
 						for (Object detail : details) {
 							detailName = detail.getClass().getName();
-							maps.add(object2Map(detail, false));
+							maps.add(object2Map(detail));
 						}
-						result.put(nameToUpperCase(detailName), maps);
+						docMap.put(nameToUpperCase(detailName), maps);
 					}
 				}else if (value instanceof Order) {
-					docMap.put(nameToUpperCase(field.getName()), object2Map(value, false));
+					docMap.put(nameToUpperCase(field.getName()), object2Map(value));
 				}else {
 					docMap.put(field.getName(), field.get(object));
 				}
 			}
 			docMap.put(DOC_TYPE, nameToUpperCase(name));
-			if (!stamp) {
-				return docMap;
-			}
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
 		}
-		result.put(nameToUpperCase(name), docMap);
-		return result;
+		return docMap;
 	}
 	
 	private static String nameToUpperCase(String className){
