@@ -1,12 +1,12 @@
 package utils;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.e2e.epd.base.order.Order;
 
 public class ObjectToMap {
 
@@ -39,8 +39,6 @@ public class ObjectToMap {
 						}
 						docMap.put(nameToUpperCase(detailName), maps);
 					}
-				}else if (value instanceof Order) {
-					docMap.put(nameToUpperCase(field.getName()), object2Map(value));
 				}else {
 					docMap.put(field.getName(), field.get(object));
 				}
@@ -51,7 +49,7 @@ public class ObjectToMap {
 		}
 		return docMap;
 	}
-	
+		
 	private static String nameToUpperCase(String className){
 		className = className.substring(className.lastIndexOf(".") + 1);
 		char[] chars = className.toCharArray();
@@ -80,13 +78,24 @@ public class ObjectToMap {
 				if (equalsOfClass(type, velua)) {
 					field.set(target, velua);					
 				}else {
-//					field.set(target, ObjectConversionUtils.typeConversion(c, target));
+					field.set(target, typeConversion(c, target));
 				}
 			}
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
 		}
 		return target;
+	}
+	
+	private static Object typeConversion(Class<?> type, Object velua) {
+		if (type.equals(Date.class)) {
+			return ObjectFormatUtils.object2Date(velua);
+		}else if (type.equals(BigDecimal.class)) {
+			return ObjectFormatUtils.object2BigDecimal(velua);
+		}else if (type.equals(String.class)) {
+			return ObjectFormatUtils.Object2String(velua);
+		}
+		return null;
 	}
 	
 	private static boolean equalsOfClass(Class<?> c ,Object object){
