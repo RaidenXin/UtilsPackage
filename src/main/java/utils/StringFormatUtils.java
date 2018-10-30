@@ -11,7 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.e2e.epd.exception.EpdException;
+
 
 public class StringFormatUtils {
 
@@ -32,7 +32,7 @@ public class StringFormatUtils {
 		amount = amount.trim().replace(",", EMPTY);
 		Matcher match = pattern.matcher(amount);
 		if (!match.matches()) {
-			LOGGER.error("String is not a number!");
+			LOGGER.error(amount + " is not a number!");
 			return null;
 		}
 		return new BigDecimal(amount);
@@ -57,7 +57,7 @@ public class StringFormatUtils {
 				LOGGER.error("String is not a time format!");
 			}
 		} catch (ParseException e) {
-			throw new Exception("Error in time conversion!");
+			LOGGER.error("Error in time conversion!",e);
 		}
 		return result;
 	}
@@ -76,6 +76,18 @@ public class StringFormatUtils {
 		if (StringUtils.isNotBlank(value)) {
 			value = value.replaceAll("\t", EMPTY).replaceAll("\n", EMPTY)
 					.replaceAll(" ", EMPTY).trim();
+		}
+		return value;
+	}
+	
+	public static Object string2Object(String value) {
+		BigDecimal bigDecimal = StringFormatUtils.stringToBigDecimal(value);
+		if (null != bigDecimal) {
+			return bigDecimal;
+		}
+		Date date = StringFormatUtils.stringToDate(value);
+		if (null != date) {
+			return date;
 		}
 		return value;
 	}
