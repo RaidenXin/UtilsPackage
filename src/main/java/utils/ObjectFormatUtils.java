@@ -1,8 +1,14 @@
 package utils;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.Date;
-
+import java.util.List;
+/**
+ * 
+ * @author Raiden
+ *
+ */
 public class ObjectFormatUtils {
 	
 
@@ -48,5 +54,22 @@ public class ObjectFormatUtils {
 			return (Integer) object;
 		}
 		return Integer.valueOf(Object2String(object));
+	}
+	
+	/**
+	 **类之间的相同的属性拷贝
+	 * @param source
+	 * @param target
+	 */
+	public static void copy(Object source,Object target) {
+		List<Field> fields = FieldUtils.getFields(source.getClass());
+		for (Field field : fields) {
+			field.setAccessible(true);
+			try {
+				field.set(target, field.get(source));
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

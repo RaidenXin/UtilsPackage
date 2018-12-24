@@ -17,9 +17,9 @@ public class StringFormatUtils {
 
 	private static final String EMPTY = "";
 	private static final String BLANK_SPACE = " ";
-	private static final String CHECK_TIME_ONE = "[\\d]{4}[-][\\d]{1,2}[-][\\d]{1,2}(.*[\\d]{1,2}[:][\\d]{1,2}[:][\\d]{1,2})?.*";
-	private static final String CHECK_TIME_TWO = "[\\d]{4}[年][\\d]{1,2}[月][\\d]{1,2}[日]?(([\\D]*)[\\d]{1,2}[时][\\d]{1,2}[分][\\d]{1,2}[秒])?$";
-	private static final String CHECK_TIME_THREE = "[\\d]{4}[/][\\d]{1,2}[/][\\d]{1,2}(([\\D]*)[\\d]{1,2}[/][\\d]{1,2}[/][\\d]{1,2})?$";
+	private static final String CHECK_TIME_ONE = ".*([\\d]{4}[-][\\d]{1,2}[-][\\d]{1,2}(([\\D]*)[\\d]{1,2}[:][\\d]{1,2}[:][\\d]{1,2})?).*";
+	private static final String CHECK_TIME_TWO = ".*([\\d]{4}[年][\\d]{1,2}[月][\\d]{1,2}[日]?(([\\D]*)[\\d]{1,2}[时][\\d]{1,2}[分][\\d]{1,2}[秒])?).*";
+	private static final String CHECK_TIME_THREE = ".*([\\d]{4}[/][\\d]{1,2}[/][\\d]{1,2}(([\\D]*)[\\d]{1,2}[:][\\d]{1,2}[:][\\d]{1,2})?).*"; 
 	private static final Logger LOGGER = LoggerFactory.getLogger(StringFormatUtils.class);
 	
 	public static BigDecimal stringToBigDecimal(String amount) {
@@ -39,35 +39,46 @@ public class StringFormatUtils {
 	}
 
 	public static Date stringToDate(String time) {
+		if (StringUtils.isBlank(time)) {
+			return null;
+		}
 		final Pattern patternOne = Pattern.compile(CHECK_TIME_ONE);
 		final Pattern patternTwo = Pattern.compile(CHECK_TIME_TWO);
 		final Pattern patternThree = Pattern.compile(CHECK_TIME_THREE);
-		Matcher matcherOne = patternOne.matcher(time);
-		Matcher matcherTwo = patternTwo.matcher(time);
-		Matcher matcherThree = patternThree.matcher(time);
+		Matcher matcher = null;
 		Date result = null;
 		try {
-			if (matcherOne.matches()) {
-				result = simpleDateFormat(new SimpleDateFormat("yyyy-MM-dd"), null, time);
-			}else if(matcherTwo.matches()) {
-				result = simpleDateFormat(new SimpleDateFormat("yyyy年MM月dd日 HH时mm分ss秒"), matcherTwo, time);
-			}else if(matcherThree.matches()) {
-				result = simpleDateFormat(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss"), matcherThree, time);
+			if ((matcher = patternOne.matcher(time)).matches()) {
+				if (StringUtils.isNotBlank(matcher.group(2))) {
+					result = simpleDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"), matcher, time, true);		
+				}else {
+					result = simpleDateFormat(new SimpleDateFormat("yyyy-MM-dd"), matcher, time, false);					
+				}
+			}else if((matcher = patternTwo.matcher(time)).matches()) {
+				if (StringUtils.isNotBlank(matcher.group(2))) {
+					result = simpleDateFormat(new SimpleDateFormat("yyyy年MM月dd日 HH时mm分ss秒"), matcher, time, true);
+				}else {					
+					result = simpleDateFormat(new SimpleDateFormat("yyyy年MM月dd日"), matcher, time, false);
+				}
+			}else if((matcher = patternThree.matcher(time)).matches()) {
+				if (StringUtils.isNotBlank(matcher.group(2))) {
+					result = simpleDateFormat(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss"), matcher, time, true);
+				}else {
+					result = simpleDateFormat(new SimpleDateFormat("yyyy/MM/dd"), matcher, time, false);					
+				}
 			}else {
 				LOGGER.error("String is not a time format!");
 			}
 		} catch (ParseException e) {
-			LOGGER.error("Error in time conversion!",e);
 		}
 		return result;
 	}
 	
-	private static Date simpleDateFormat(SimpleDateFormat simpleDateFormat,Matcher matcher,String time) throws ParseException{
-		if (null != matcher) {
-			String temp = matcher.group(2);
-			if (StringUtils.isNotBlank(temp)) {
-				time = time.replaceAll(matcher.group(2), BLANK_SPACE);			
-			}
+	private static Date simpleDateFormat(SimpleDateFormat simpleDateFormat,Matcher matcher,String time,boolean flag) throws ParseException{
+		if (flag) {
+			time = time.substring(matcher.start(1), matcher.start(3)) + BLANK_SPACE + time.substring(matcher.end(3),matcher.end(1));
+		}else {
+			time = time.substring(matcher.start(1), matcher.end(1));
 		}
 		return simpleDateFormat.parse(time);
 	}
